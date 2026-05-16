@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven'
+        maven 'MAVEN'
         jdk 'JDK21'
     }
 
@@ -28,13 +28,17 @@ pipeline {
 
         stage('Build WAR File') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                dir('DevOps-Project-01') {
+                    sh 'mvn clean package -DskipTests'
+                }
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $IMAGE_NAME:$BUILD_NUMBER .'
+                dir('DevOps-Project-01') {
+                    sh 'docker build -t $IMAGE_NAME:$BUILD_NUMBER .'
+                }
             }
         }
 
@@ -46,7 +50,9 @@ pipeline {
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
 
-                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                    sh '''
+                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                    '''
                 }
             }
         }
