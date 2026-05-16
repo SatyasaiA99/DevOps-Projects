@@ -22,7 +22,18 @@ pipeline {
         stage('Clone Code') {
             steps {
                 git branch: 'master',
+
                 url: 'https://github.com/SatyasaiA99/DevOps-Project-01.git'
+
+                url: 'https://github.com/SatyasaiA99/DevOps-Projects.git'
+            }
+        }
+
+        stage('Check Files') {
+            steps {
+                sh 'pwd'
+                sh 'ls -la'
+                sh 'find . -name pom.xml'
             }
         }
 
@@ -74,6 +85,12 @@ pipeline {
                 -p 8080:8080 \
                 $IMAGE_NAME:$BUILD_NUMBER
                 """
+            }
+        }
+
+        stage('Check Container') {
+            steps {
+                sh 'docker ps'
             }
         }
     }
