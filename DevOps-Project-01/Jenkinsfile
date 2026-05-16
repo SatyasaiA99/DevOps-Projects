@@ -23,8 +23,6 @@ pipeline {
             steps {
                 git branch: 'master',
 
-                url: 'https://github.com/SatyasaiA99/DevOps-Project-01.git'
-
                 url: 'https://github.com/SatyasaiA99/DevOps-Projects.git'
             }
         }
