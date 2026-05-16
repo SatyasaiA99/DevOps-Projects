@@ -1,0 +1,85 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'Maven'
+        jdk 'JDK21'
+    }
+
+    environment {
+        IMAGE_NAME = "satyasaia99/dptweb-app"
+        CONTAINER_NAME = "dptweb-container"
+    }
+
+    stages {
+
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+
+        stage('Clone Code') {
+            steps {
+                git branch: 'main',
+                url: 'https://github.com/SatyasaiA99/DevOps-Projects.git'
+            }
+        }
+
+        stage('Build WAR File') {
+            steps {
+                sh 'mvn clean package -DskipTests'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t $IMAGE_NAME:$BUILD_NUMBER .'
+            }
+        }
+
+        stage('Docker Login') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'Dockerhub',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                sh 'docker push $IMAGE_NAME:$BUILD_NUMBER'
+            }
+        }
+
+        stage('Deploy Container') {
+            steps {
+                sh """
+                docker stop $CONTAINER_NAME || true
+                docker rm $CONTAINER_NAME || true
+
+                docker run -d \
+                --name $CONTAINER_NAME \
+                -p 8080:8080 \
+                $IMAGE_NAME:$BUILD_NUMBER
+                """
+            }
+        }
+    }
+
+    post {
+
+        success {
+            echo 'Application Deployed Successfully'
+        }
+
+        failure {
+            echo 'Pipeline Failed'
+        }
+    }
+}
